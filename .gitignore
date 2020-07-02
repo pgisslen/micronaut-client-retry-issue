@@ -1,0 +1,16 @@
+.gradle/
+.idea/
+build/
+out/
+classes/
+*.iml
+*.ipr
+*.iws
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+.keepTestingLock
+logs/
+/*.ids
+*.log
+.java-version
