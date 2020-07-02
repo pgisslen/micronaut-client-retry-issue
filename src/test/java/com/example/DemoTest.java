@@ -1,5 +1,6 @@
 package com.example;
 
+import io.micronaut.http.HttpStatus;
 import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.runtime.EmbeddedApplication;
 import io.micronaut.test.annotation.MicronautTest;
@@ -63,8 +64,7 @@ public class DemoTest {
         final FooDTO foo = new FooDTO();
         foo.foo = "hello";
         //this throws HttpClientResponseException but shouldn't.
-        final String response = oneTryClient.post(foo).blockingGet();
-        Assertions.assertEquals("hello", response);
+        Assertions.assertEquals(HttpStatus.OK.getCode(), oneTryClient.post(foo).blockingGet().getStatus().getCode());
     }
 
     public static class Callback implements ExpectationResponseCallback {

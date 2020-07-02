@@ -1,5 +1,6 @@
 package com.example;
 
+import io.micronaut.http.HttpResponse;
 import io.micronaut.retry.annotation.Fallback;
 import io.reactivex.Single;
 import javax.validation.constraints.NotNull;
@@ -8,7 +9,7 @@ import javax.validation.constraints.NotNull;
 public class OneTryClientFallback implements OneTryClient {
 
     @Override
-    public Single<String> post(@NotNull final FooDTO foo) {
-        return Single.just(foo.foo);
+    public Single<HttpResponse<?>> post(@NotNull final FooDTO foo) {
+        return Single.just(HttpResponse.ok());
     }
 }

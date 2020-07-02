@@ -1,5 +1,6 @@
 package com.example;
 
+import io.micronaut.http.HttpResponse;
 import io.micronaut.http.annotation.Body;
 import io.micronaut.http.annotation.Post;
 import io.micronaut.http.client.annotation.Client;
@@ -12,5 +13,5 @@ import javax.validation.constraints.NotNull;
 public interface OneTryClient {
 
     @Post("/foo")
-    Single<String> post(@Body @NotNull FooDTO foo);
+    Single<HttpResponse<?>> post(@Body @NotNull FooDTO foo);
 }
