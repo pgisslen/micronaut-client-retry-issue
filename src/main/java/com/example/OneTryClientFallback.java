@@ -9,6 +9,6 @@ public class OneTryClientFallback implements OneTryClient {
 
     @Override
     public Single<String> post(@NotNull final FooDTO foo) {
-        return Single.just("Failed");
+        return Single.just(foo.foo);
     }
 }

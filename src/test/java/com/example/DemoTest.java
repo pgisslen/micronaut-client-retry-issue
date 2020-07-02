@@ -62,8 +62,9 @@ public class DemoTest {
     void testFallback() {
         final FooDTO foo = new FooDTO();
         foo.foo = "hello";
+        //this throws HttpClientResponseException but shouldn't.
         final String response = oneTryClient.post(foo).blockingGet();
-        Assertions.assertEquals("failover", response);
+        Assertions.assertEquals("hello", response);
     }
 
     public static class Callback implements ExpectationResponseCallback {
