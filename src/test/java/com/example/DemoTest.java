@@ -5,7 +5,10 @@ import io.micronaut.runtime.EmbeddedApplication;
 import io.micronaut.test.annotation.MicronautTest;
 import javax.inject.Inject;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.mock.action.ExpectationResponseCallback;
 import org.mockserver.model.HttpRequest;
@@ -15,31 +18,52 @@ import static org.mockserver.model.HttpClassCallback.callback;
 import static org.mockserver.model.HttpRequest.request;
 
 @MicronautTest
+@TestInstance(Lifecycle.PER_CLASS)
 public class DemoTest {
 
     @Inject
     private EmbeddedApplication application;
     @Inject
-    private FooClient fooClient;
+    private RetryableClient retryableClient;
+    @Inject
+    private OneTryClient oneTryClient;
+    @Inject
+    OneTryClientFallback fallback;
+    private HttpRequest endpoint;
+    private ClientAndServer server9999;
 
-    @Test
-    void testItWorks() {
+    @BeforeAll
+    public void beforeAll() {
         Assertions.assertTrue(application.isRunning());
-        final HttpRequest endpoint = request().withPath("/foo").withMethod("POST");
-        final ClientAndServer server = ClientAndServer.startClientAndServer(9999);
-        server
+        endpoint = request().withPath("/foo").withMethod("POST");
+        server9999 = ClientAndServer.startClientAndServer(9999);
+        ClientAndServer.startClientAndServer(9998)
+            .when(endpoint)
+            .respond(HttpResponse.response().withStatusCode(500));
+        server9999
             .when(endpoint)
             .respond(callback().withCallbackClass(Callback.class.getName()));
+    }
 
+    @Test
+    void testRetry() {
         try {
             final FooDTO foo = new FooDTO();
             foo.foo = "hello";
-            fooClient.post(foo).blockingGet();
+            retryableClient.post(foo).blockingGet();
             Assertions.fail("Expected HttpClientResponseException");
         } catch (HttpClientResponseException e) {
             Assertions.assertEquals(500, e.getStatus().getCode());
-            server.verify(endpoint, VerificationTimes.atLeast(2));
+            server9999.verify(endpoint, VerificationTimes.atLeast(2));
         }
+    }
+
+    @Test
+    void testFallback() {
+        final FooDTO foo = new FooDTO();
+        foo.foo = "hello";
+        final String response = oneTryClient.post(foo).blockingGet();
+        Assertions.assertEquals("failover", response);
     }
 
     public static class Callback implements ExpectationResponseCallback {
